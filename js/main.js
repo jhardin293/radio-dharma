@@ -1,3 +1,17 @@
+var SoundcloudAudioSource = function (player, source) {
+  var self = this;
+  player.crossOrigin = "anonymous";
+  this.playStream = function(streamUrl) {
+          
+    player.addEventListener('ended', function(){
+      self.directStream('coasting');
+    });
+    player.setAttribute('src', streamUrl);
+    console.log(player,'player');
+    player.load();
+    player.play();
+  };
+};
 /* Makes a request to the Soundcloud API and returns JSON data. */
 var SoundcloudLoader = function(player,uiUpdater){
   var self = this;
@@ -12,11 +26,10 @@ var SoundcloudLoader = function(player,uiUpdater){
     SC.initialize({
       client_id: client_id
     }); 
-    SC.get('/resolve', { url: track_url }, function(sound){
+    SC.get('/resolve', { url: track_url }).then(function(sound){
       if(sound.errors) {
         errrorCallback();
       } else  {
-
         if(sound.kind === 'playlist'){
           self.sound = sound;
           self.steamPlaylistIndex = 0;
@@ -80,7 +93,7 @@ var UiUpdater = function() {
     this.update = function(loader) {
       //update the track and artist in the controlPanel
       var artistLink = document.createElement('a');
-      artistLink.setAtrribute('href', loader.sound.user.permalink_url);
+      artistLink.setAttribute('href', loader.sound.user.permalink_url);
       artistLink.innerHTML = loader.sound.user.username;
       var trackLink = document.createElement('a');
       trackLink.setAttribute('href', loader.sound.permalink_url);
@@ -110,14 +123,16 @@ var UiUpdater = function() {
 
 window.onload = function init() {
   var player = document.getElementById('player');
+  var source = document.getElementById('source');
   var uiUpdater = new UiUpdater();
   var loader = new SoundcloudLoader(player,uiUpdater);
+  var audioSource = new SoundcloudAudioSource(player, source);
   
   var loadAndUpdate =  function(trackUrl) { 
-    //paste url here
     loader.loadStream(trackUrl, 
       function() {
         uiUpdater.clearInfoPanel();
+        audioSource.playStream(loader.streamUrl());
         uiUpdater.update(loader);
       }, 
       function() {
