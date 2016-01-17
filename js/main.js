@@ -1,16 +1,69 @@
-var SoundcloudAudioSource = function (player, source) {
+var SoundcloudAudioSource = function (player) {
   var self = this;
+  var analyser;
+  var audioCtx = new (window.AudioContext || window.webkitAudioContext);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
   player.crossOrigin = "anonymous";
+
+  var source = audioCtx.createMediaElementSource(player);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+  var sampleAudioStream = function() {
+    analyser.getByteFrequencyData(self.streamData);
+    //Calculate an overall volume value
+    var total = 0;
+    for (var i = 0; i < 80; i++) {
+      total += self.streamData[i];
+    }
+    self.volume = total;
+    //console.log(self.volume);
+  };
+  setInterval(sampleAudioStream, 20);
+  this.volume = 0;
+  this.streamData = new Uint8Array(128);
   this.playStream = function(streamUrl) {
-          
     player.addEventListener('ended', function(){
       self.directStream('coasting');
     });
     player.setAttribute('src', streamUrl);
-    console.log(player,'player');
     player.load();
     player.play();
   };
+};
+
+var Visualizer = function() {
+  var audioSource;
+  var container;
+  var context;
+  var rect;
+  var draw = function() {
+    // you can then access all the frequency and volume data
+    // and use it to draw whatever you like on your canvas
+    rect.style.height = audioSource.streamData[15] * 3 + 'px';
+    rect.style.width = audioSource.streamData[15] * 3 + 'px';
+
+    for(bin = 0; bin < audioSource.streamData.length; bin ++) {
+        // do something with each value. Here's a simple example
+        var val = audioSource.streamData[bin];
+        var red = val;
+        var green = 255 - val;
+        var blue = val / 2; 
+        context.fillStyle = 'rgb(' + red + ', ' + green + ', ' + blue + ')';
+        context.fillRect(bin * 2, 0, 2, 200);
+        // use lines and shapes to draw to the canvas is various ways. Use your imagination!
+    }
+
+    requestAnimationFrame(draw);
+  };
+  this.init = function(options) {
+    audioSource = options.audioSource;
+    container = document.getElementById(options.containerId); 
+    context = container.getContext("2d");
+    rect = document.getElementById('circle');
+    console.log(context);
+    draw();
+  }; 
 };
 /* Makes a request to the Soundcloud API and returns JSON data. */
 var SoundcloudLoader = function(player,uiUpdater){
@@ -127,6 +180,7 @@ window.onload = function init() {
   var uiUpdater = new UiUpdater();
   var loader = new SoundcloudLoader(player,uiUpdater);
   var audioSource = new SoundcloudAudioSource(player, source);
+  var visualizer = new Visualizer();
   
   var loadAndUpdate =  function(trackUrl) { 
     loader.loadStream(trackUrl, 
@@ -140,6 +194,11 @@ window.onload = function init() {
       } 
     );
   };
+
+  visualizer.init({
+    containerId: 'visualizer',
+    audioSource: audioSource
+  });
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
