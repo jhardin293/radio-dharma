@@ -28,40 +28,45 @@ var SoundcloudAudioSource = function (player) {
     });
     player.setAttribute('src', streamUrl);
     player.load();
-    player.play();
   };
 };
 
 var Visualizer = function() {
   var audioSource;
-  var container;
-  var context;
   var rect;
+  var bar;
   var draw = function() {
     // you can then access all the frequency and volume data
-    // and use it to draw whatever you like on your canvas
-    rect.style.height = audioSource.streamData[15] * 3 + 'px';
-    rect.style.width = audioSource.streamData[15] * 3 + 'px';
+    var reduced = audioSource.streamData.reduce(function(prev,cur){ return prev + cur});
+    var avg = reduced / audioSource.streamData.length;
+    var value = audioSource.streamData[15];
+    var scale = d3.scale.linear().domain([0, 60]).range([70,100]);
+    var scaledValue = scale(avg);
+    rect.style.height = scaledValue + '%';
+    rect.style.width = scaledValue + '%';
+    //console.log(audioSource.volume);
 
     for(bin = 0; bin < audioSource.streamData.length; bin ++) {
         // do something with each value. Here's a simple example
         var val = audioSource.streamData[bin];
-        var red = val;
-        var green = 255 - val;
-        var blue = val / 2; 
-        context.fillStyle = 'rgb(' + red + ', ' + green + ', ' + blue + ')';
-        context.fillRect(bin * 2, 0, 2, 200);
-        // use lines and shapes to draw to the canvas is various ways. Use your imagination!
+        var line = document.getElementById('bar' + bin);
+        line.style.height = val + 'px';
+        
     }
 
     requestAnimationFrame(draw);
   };
   this.init = function(options) {
     audioSource = options.audioSource;
-    container = document.getElementById(options.containerId); 
-    context = container.getContext("2d");
     rect = document.getElementById('circle');
-    console.log(context);
+    audioSource.streamData.forEach(function(bin, i){
+      bar = document.createElement('div');
+      bar.setAttribute('class', 'bar');
+      bar.setAttribute('id', 'bar' + i);
+      document.getElementById('barChart').appendChild(bar);
+      bar.style.height = '100px';
+    });
+    console.log(audioSource);
     draw();
   }; 
 };
@@ -177,10 +182,13 @@ var UiUpdater = function() {
 window.onload = function init() {
   var player = document.getElementById('player');
   var source = document.getElementById('source');
+  var playBtn = document.getElementById('play-button');
   var uiUpdater = new UiUpdater();
   var loader = new SoundcloudLoader(player,uiUpdater);
   var audioSource = new SoundcloudAudioSource(player, source);
   var visualizer = new Visualizer();
+  
+  playBtn.className += '' + 'paused';
   
   var loadAndUpdate =  function(trackUrl) { 
     loader.loadStream(trackUrl, 
@@ -199,11 +207,27 @@ window.onload = function init() {
     containerId: 'visualizer',
     audioSource: audioSource
   });
-
+ 
+    
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     var trackUrl = document.getElementById('input').value;
     loadAndUpdate(trackUrl);
+    playBtn.classList.remove('paused');  
+  });
+   
+  var clicked = false;
+  playBtn.addEventListener('click', function(e){
+    clicked === true ? clicked = false : clicked = true;
+    if (clicked){
+      playBtn.className += '' + 'paused';
+      player.pause();
+    }else {
+      playBtn.classList.remove('paused');  
+      player.play();
+    }
+
+    console.log(clicked);
   });
   
 };
