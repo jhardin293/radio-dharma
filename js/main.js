@@ -33,17 +33,17 @@ var SoundcloudAudioSource = function (player) {
 
 var Visualizer = function() {
   var audioSource;
-  var rect;
+  var circ;
   var bar;
   var draw = function() {
     // you can then access all the frequency and volume data
     var reduced = audioSource.streamData.reduce(function(prev,cur){ return prev + cur});
     var avg = reduced / audioSource.streamData.length;
     var value = audioSource.streamData[15];
-    var scale = d3.scale.linear().domain([0, 60]).range([70,100]);
+    var scale = d3.scale.linear().domain([0, 60]).range([50,100]);
     var scaledValue = scale(avg);
-    rect.style.height = scaledValue + '%';
-    rect.style.width = scaledValue + '%';
+    circ.style.height = scaledValue + '%';
+    circ.style.width = scaledValue + '%';
     //console.log(audioSource.volume);
 
     for(bin = 0; bin < audioSource.streamData.length; bin ++) {
@@ -58,7 +58,7 @@ var Visualizer = function() {
   };
   this.init = function(options) {
     audioSource = options.audioSource;
-    rect = document.getElementById('circle');
+    circ = document.getElementById('circle');
     audioSource.streamData.forEach(function(bin, i){
       bar = document.createElement('div');
       bar.setAttribute('class', 'bar');
@@ -69,6 +69,13 @@ var Visualizer = function() {
     console.log(audioSource);
     draw();
   }; 
+
+  this.end = function() {
+    circ = document.getElementById('circle');
+    console.log(circ,'circ');
+    circ.style.height = '';
+    circ.style.width = '';
+  };
 };
 /* Makes a request to the Soundcloud API and returns JSON data. */
 var SoundcloudLoader = function(player,uiUpdater){
@@ -81,10 +88,11 @@ var SoundcloudLoader = function(player,uiUpdater){
   this.uiUPdater = uiUpdater;
 
   this.loadStream = function(track_url, successCallback, errorCallback) {
+    var tempUrl = "https://soundcloud.com/werkspace/jengi-beats-sun-sun";
     SC.initialize({
       client_id: client_id
     }); 
-    SC.get('/resolve', { url: track_url }).then(function(sound){
+    SC.get('/resolve', { url: tempUrl }).then(function(sound){
       if(sound.errors) {
         errrorCallback();
       } else  {
@@ -141,6 +149,7 @@ var UiUpdater = function() {
     var infoImage = document.getElementById('infoImage');
     var infoArtist = document.getElementById('infoArtist');
     var infoTrack = document.getElementById('infoTrack');
+    console.log(infoTrack);
     var messageBox = document.getElementById('messageBox');
      
     this.clearInfoPanel = function() {
@@ -177,13 +186,17 @@ var UiUpdater = function() {
     };
     
 };
-
+ 
+var loadAndUpdate;
 
 window.onload = function init() {
   //SoundCloud
   var scPlayer = document.getElementById('scPlayer');
   var source = document.getElementById('source');
   var playBtn = document.getElementById('play-button');
+  var circle = document.getElementsByClassName('circle-wrapper')[0];
+  var test = document.getElementById('circle');
+  console.log(test);
   var uiUpdater = new UiUpdater();
   var loader = new SoundcloudLoader(scPlayer,uiUpdater);
   var audioSource = new SoundcloudAudioSource(scPlayer, source);
@@ -191,7 +204,7 @@ window.onload = function init() {
   
   playBtn.className += '' + 'paused';
   
-  var loadAndUpdate =  function(trackUrl) { 
+  loadAndUpdate =  function(trackUrl) { 
     loader.loadStream(trackUrl, 
       function() {
         uiUpdater.clearInfoPanel();
@@ -204,19 +217,17 @@ window.onload = function init() {
     );
   };
 
-  visualizer.init({
-    containerId: 'visualizer',
-    audioSource: audioSource
-  });
  
     
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     var trackUrl = document.getElementById('input').value;
-    loadAndUpdate(trackUrl);
     playBtn.classList.remove('paused');  
   });
-   
+
+  loadAndUpdate();
+  youTubePlayer();
+
   var clicked = false;
   playBtn.addEventListener('click', function(e){
     clicked === true ? clicked = false : clicked = true;
@@ -227,66 +238,75 @@ window.onload = function init() {
       playBtn.classList.remove('paused');  
       scPlayer.play();
     }
-
     console.log(clicked);
   });
 
+  visualizer.init({
+    containerId: 'visualizer',
+    audioSource: audioSource
+  });
+  
+  circle.addEventListener('mouseover', function(e){
+    console.log(e, 'mouserover');
+  }) 
+
+  circle.addEventListener('mouseout', function(e){
+    console.log(e,'mouseout');
+    visualizer.end();
+  }) 
 
 };
+function youTubePlayer () {
+  //Youtube
+  //load script async 
+  var tag = document.createElement('script');
 
-//Youtube
+  tag.src = "https://www.youtube.com/iframe_api";
+  var firstScriptTag = document.getElementsByTagName('script')[0];
 
-//load script async 
-var tag = document.createElement('script');
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-tag.src = "https://www.youtube.com/iframe_api";
-var firstScriptTag = document.getElementsByTagName('script')[0];
+  //This function creates an iframe after the API code downloads
+  var player;
+  var playerOptions = {
+    'modestbranding': 1, 
+    'showinfo': 0,
+    'autoplay': 1, 
+    'controls': 0,
+    'autohide':1,
+    "origin": 'http://localhost:8000',
+    'wmode':'opaque'  
+  };
 
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  window.onYouTubeIframeAPIReady = function () {
+    player = new YT.Player('player', {
+      //todo change to 100%
+      height: '100%',
+      width: '100%',
+      videoId: 'yLIJ6xlNSEU',
+      playerVars: playerOptions,
+      events: {
+        'onReady': onPlayerReady,
+        'onStateChange': onPlayerStateChange
+      } 
+    });
+  };
 
-//This function creates an iframe after the API code downloads
-var player;
-var playerOptions = {
-  'modestbranding': 1, 
-  'showinfo': 0,
-  'autoplay': 1, 
-  'controls': 0,
-  'autohide':1,
-  'wmode':'opaque'  
-}
-function onYouTubeIframeAPIReady() {
-  player = new YT.Player('player', {
-    //todo change to 100%
-    height: '100%',
-    width: '100%',
-    videoId: 'yLIJ6xlNSEU',
-    playerVars: playerOptions,
-    events: {
-      'onReady': onPlayerReady,
-      'onStateChange': onPlayerStateChange
-    } 
-  });
-}
-console.log(onYouTubeIframeAPIReady);
+  //The API will call this function when the video player is ready.
+  function onPlayerReady(event) {
+    player.mute();
+    player.playVideo();
+  }
 
-//The API will call this function when the video player is ready.
-function onPlayerReady(event) {
-  console.log(event, 'event');
-  //event.target.playerVideo();
-}
+  //The API calls this function when the player's state changes.
+  var done = false;
 
-//The API calls this function when the player's state changes.
-var done = false;
+  function stopVideo() {
+    player.stopVideo();
+    console.log(player);
+  }
 
-function stopVideo() {
-  player.stopVideo();
-  console.log(player);
-}
-
-function onPlayerStateChange(event) {
-  if (event.data == YT.PlayerState.PLAYING && !done) {
-    setTimeout(stopVideo, 6000);
-    done = true;
+  function onPlayerStateChange(event) {
+    console.log(event,'event');
   }
 }
-

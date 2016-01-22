@@ -12,6 +12,7 @@
 
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
         <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="fonts/stylesheet.css">
         <link rel="stylesheet" href="css/main.css">
         <script src="js/vendor/modernizr-2.8.3.min.js"></script>
     </head>
@@ -22,6 +23,10 @@
         <div id="player"></div>
         <div class="container">
             <div class="circle-wrapper">
+            <div class="trackInfo">
+                <div id="infoArtist"></div>
+                <div ><span id="by">By</span><span id="infoTrack"></span></div>
+            </div>
               <a id="play-button" href="#">
                 <div class="left"></div>
                 <div class="right"></div>
@@ -30,12 +35,10 @@
               </a>
               <div id="circle"></div>
             </div>
-            <div id="controlPanel">
+            <div id="controlPanel" style="display: none">
                 <div id="tab"><a href="#" id="toggleButton"><i class="icon-menu"></i></a></div>
                 <div id="trackInfoPanel">
                     <img id="infoImage" src="">
-                    <div id="infoArtist"></div>
-                    <div id="infoTrack"></div>
                 </div>
                 <div id="playerControls">
                     <form id="form">

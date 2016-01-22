@@ -5,6 +5,12 @@ html {
 }
 html, body{
   height: 100%;
+  font-family: dharma_gothic_m_regularRg;
+}
+
+a, a:hover, a:visited {
+  color: white;
+  text-decoration: none;
 }
 /*
  * Remove text-shadow in selection highlight:
@@ -99,18 +105,51 @@ textarea {
 #controlPanel {
   margin-top: 55px;
 }
-.circle-wrapper {
-  height: 300px;
-  width: 300px;
-  float: right;
-  position: relative;
-  margin-top: 25px;
-  right: 211px;
-  margin-top: 25px;
+
+.trackInfo{
+  font-size: 245%;
+  top: 13%;
+  left: 30%;
+  position: absolute;
+  text-transform: uppercase;
+  z-index: 1;
+  letter-spacing: 3px;
 }
+
+#infoArtist {
+  font-family: 'dharma_gothic_cbold_italic';
+  letter-spacing: 3px;
+  font-size: 150%;
+  color: white;
+  margin-bottom: -13px;
+}
+#by{
+  color: white;
+  font-family: 'dharma_gothic_cbold_italic';
+}
+#infoTrack {
+  font-family: 'dharma_gothic_clight_italic';
+}
+.circle-wrapper {
+  height: 400px;
+  width: 400px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -207px 0 0 -233px;
+}
+
+/*height: 1500px;
+  width: 1500px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -467px 0 0 -769px;
+*/  
 #circle {
-  background-color: black;
-  /*transition: all 0.1s;*/
+  background-color: rgba(0, 0, 0, 0.68);
+  min-height: 100%;
+  min-width: 100%;
   border-radius: 50%;
   top: 50%;
   left: 50%;
@@ -121,6 +160,7 @@ textarea {
 #playerControls audio {
   margin-top: 25px;
   margin-bottom: 25px;
+  display: none;
 }
 
 #input {
