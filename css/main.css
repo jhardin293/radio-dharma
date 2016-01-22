@@ -3,7 +3,9 @@ html {
     font-size: 1em;
     line-height: 1.4;
 }
-
+html, body{
+  height: 100%;
+}
 /*
  * Remove text-shadow in selection highlight:
  * https://twitter.com/miketaylr/status/12228805301
@@ -84,6 +86,16 @@ textarea {
    =========================================================================
 /* ==========================================================================
 */
+
+#player {
+  position: fixed;
+  z-index: 0;
+  transform: scale(1.8);
+  pointer-events: none;
+}
+.container {
+  z-index: 1;
+}
 #controlPanel {
   margin-top: 55px;
 }

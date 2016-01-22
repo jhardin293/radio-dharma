@@ -180,12 +180,13 @@ var UiUpdater = function() {
 
 
 window.onload = function init() {
-  var player = document.getElementById('player');
+  //SoundCloud
+  var scPlayer = document.getElementById('scPlayer');
   var source = document.getElementById('source');
   var playBtn = document.getElementById('play-button');
   var uiUpdater = new UiUpdater();
-  var loader = new SoundcloudLoader(player,uiUpdater);
-  var audioSource = new SoundcloudAudioSource(player, source);
+  var loader = new SoundcloudLoader(scPlayer,uiUpdater);
+  var audioSource = new SoundcloudAudioSource(scPlayer, source);
   var visualizer = new Visualizer();
   
   playBtn.className += '' + 'paused';
@@ -221,13 +222,71 @@ window.onload = function init() {
     clicked === true ? clicked = false : clicked = true;
     if (clicked){
       playBtn.className += '' + 'paused';
-      player.pause();
+      scPlayer.pause();
     }else {
       playBtn.classList.remove('paused');  
-      player.play();
+      scPlayer.play();
     }
 
     console.log(clicked);
   });
-  
+
+
 };
+
+//Youtube
+
+//load script async 
+var tag = document.createElement('script');
+
+tag.src = "https://www.youtube.com/iframe_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+//This function creates an iframe after the API code downloads
+var player;
+var playerOptions = {
+  'modestbranding': 1, 
+  'showinfo': 0,
+  'autoplay': 1, 
+  'controls': 0,
+  'autohide':1,
+  'wmode':'opaque'  
+}
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('player', {
+    //todo change to 100%
+    height: '100%',
+    width: '100%',
+    videoId: 'yLIJ6xlNSEU',
+    playerVars: playerOptions,
+    events: {
+      'onReady': onPlayerReady,
+      'onStateChange': onPlayerStateChange
+    } 
+  });
+}
+console.log(onYouTubeIframeAPIReady);
+
+//The API will call this function when the video player is ready.
+function onPlayerReady(event) {
+  console.log(event, 'event');
+  //event.target.playerVideo();
+}
+
+//The API calls this function when the player's state changes.
+var done = false;
+
+function stopVideo() {
+  player.stopVideo();
+  console.log(player);
+}
+
+function onPlayerStateChange(event) {
+  if (event.data == YT.PlayerState.PLAYING && !done) {
+    setTimeout(stopVideo, 6000);
+    done = true;
+  }
+}
+
