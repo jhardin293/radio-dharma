@@ -66,7 +66,6 @@ var Visualizer = function() {
       document.getElementById('barChart').appendChild(bar);
       bar.style.height = '100px';
     });
-    console.log(audioSource);
     draw();
   }; 
 
@@ -149,7 +148,6 @@ var UiUpdater = function() {
     var infoImage = document.getElementById('infoImage');
     var infoArtist = document.getElementById('infoArtist');
     var infoTrack = document.getElementById('infoTrack');
-    console.log(infoTrack);
     var messageBox = document.getElementById('messageBox');
      
     this.clearInfoPanel = function() {
@@ -195,12 +193,11 @@ window.onload = function init() {
   var source = document.getElementById('source');
   var playBtn = document.getElementById('play-button');
   var circle = document.getElementsByClassName('circle-wrapper')[0];
-  var test = document.getElementById('circle');
-  console.log(test);
   var uiUpdater = new UiUpdater();
   var loader = new SoundcloudLoader(scPlayer,uiUpdater);
   var audioSource = new SoundcloudAudioSource(scPlayer, source);
   var visualizer = new Visualizer();
+  var player;
   
   playBtn.className += '' + 'paused';
   
@@ -229,14 +226,17 @@ window.onload = function init() {
   youTubePlayer();
 
   var clicked = false;
+  playBtn.className ='pause';
   playBtn.addEventListener('click', function(e){
     clicked === true ? clicked = false : clicked = true;
     if (clicked){
-      playBtn.className += '' + 'paused';
+      playBtn.className ='play';
       scPlayer.pause();
+      console.log(player);
+      //player.pause();
     }else {
-      playBtn.classList.remove('paused');  
       scPlayer.play();
+      playBtn.className ='pause';
     }
     console.log(clicked);
   });
@@ -245,17 +245,15 @@ window.onload = function init() {
     containerId: 'visualizer',
     audioSource: audioSource
   });
-  
+
   circle.addEventListener('mouseover', function(e){
-    console.log(e, 'mouserover');
-  }) 
+  });
 
   circle.addEventListener('mouseout', function(e){
-    console.log(e,'mouseout');
-    visualizer.end();
-  }) 
+  }); 
 
 };
+
 function youTubePlayer () {
   //Youtube
   //load script async 
@@ -267,7 +265,6 @@ function youTubePlayer () {
   firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
   //This function creates an iframe after the API code downloads
-  var player;
   var playerOptions = {
     'modestbranding': 1, 
     'showinfo': 0,
@@ -296,6 +293,7 @@ function youTubePlayer () {
   function onPlayerReady(event) {
     player.mute();
     player.playVideo();
+    console.log(player);
   }
 
   //The API calls this function when the player's state changes.
@@ -307,6 +305,5 @@ function youTubePlayer () {
   }
 
   function onPlayerStateChange(event) {
-    console.log(event,'event');
   }
 }
