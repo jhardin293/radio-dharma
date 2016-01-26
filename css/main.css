@@ -116,20 +116,39 @@ textarea {
   letter-spacing: 3px;
 }
 
-#infoArtist {
+#infoTrack {
   font-family: 'dharma_gothic_cbold_italic';
   letter-spacing: 3px;
   font-size: 150%;
   color: white;
   margin-bottom: -13px;
+  white-space: nowrap;
+  width: 173px;
+  overflow: hidden;
 }
+
+.artist-name {
+  width: 530px;
+  position: absolute;
+}
+
 #by{
   color: white;
   font-family: 'dharma_gothic_cbold_italic';
   font-size: 70%;
+  display: block;
+  float: left;
+  margin-top: 8px;
+  margin-right: 6px;
+
 }
-#infoTrack {
+#infoArtist {
   font-family: 'dharma_gothic_clight_italic';
+  width: 410px;
+  display: block;
+  white-space: nowrap;
+  float: left;
+  overflow: hidden;
 }
 .circle-wrapper {
   height: 400px;
@@ -241,6 +260,9 @@ textarea {
 }
 .bottom-controls div {
   float: left;
+}
+.bottom-controls div:hover {
+  cursor:pointer;
 }
 .bottom-controls .control{
   text-transform: uppercase;
