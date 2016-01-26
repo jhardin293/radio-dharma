@@ -63,10 +63,11 @@ var Visualizer = function() {
     //console.log(audioSource.streamData);
     var reduced = audioSource.streamData.reduce(function(prev,cur){ return prev + cur});
     var avg = reduced / audioSource.streamData.length;
-    var value = audioSource.streamData[15];
+    var value = audioSource.streamData[8];
     var scale = d3.scale.linear().domain([0, 60]).range([2,100]);
     var scaledValue = scale(avg);
     var scaledValueP = scaledValue * 2 + '%';
+    console.log(scaledValueP);
     circ.style.height = scaledValueP;
     circ.style.width = scaledValueP;
     //console.log(audioSource.volume);
@@ -112,7 +113,7 @@ var SoundcloudLoader = function(player,uiUpdater){
   this.uiUpdater = uiUpdater;
 
   this.loadStream = function(track_url, successCallback, errorCallback) {
-    var tempUrl = "https://soundcloud.com/johanne-morrison/sets/skinny-dipping";
+    var tempUrl = "https://soundcloud.com/jpmitchellmusic/sets/radio-dharma";
     SC.initialize({
       client_id: client_id
     }); 
@@ -197,12 +198,13 @@ var UiUpdater = function() {
        if(loader.sound.kind=="playlist"){
             var artistAndTitle = loader.sound.tracks[loader.streamPlaylistIndex].title.split('-'); 
             console.log(loader.sound, 'art title');
-            if (artistLink[1]) {
+            if (artistAndTitle[1]) {
               var title = artistAndTitle[1];
               var artist = artistAndTitle[0];
             }else{
+              console.log(artistAndTitle, 'tttt');
               var title = artistAndTitle[0];
-              var artist = loader.sound.user.username  
+              var artist = loader.sound.tracks[loader.streamPlaylistIndex].user.username;  
             };
             trackLink.innerHTML = "<p>" + title + "</p>";
             artistLink.innerHTML = artist;
@@ -317,6 +319,7 @@ window.onload = function init() {
   var visualizer = new Visualizer();
   var yTPlayer = new youTubePlayer();
   var skipRight = document.getElementById('right-skip');
+  var skipLeft = document.getElementById('left-skip');
   console.log(player, 'player in onload');
   //var player;
  var isFullScreen = false; 
@@ -350,6 +353,10 @@ window.onload = function init() {
   skipRight.addEventListener('click', function(e){
     loader.directStream('forward'); 
   });
+
+  skipLeft.addEventListener('click', function() {
+    loader.directStream('backward');
+  })
  
 
   loadAndUpdate();
