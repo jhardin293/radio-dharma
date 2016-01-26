@@ -12,6 +12,7 @@
 
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
         <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="fonts/stylesheet.css">
         <link rel="stylesheet" href="css/main.css">
         <script src="js/vendor/modernizr-2.8.3.min.js"></script>
     </head>
@@ -19,29 +20,44 @@
         <!--[if lt IE 8]>
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
+        <div id="player"></div>
         <div class="container">
             <div class="circle-wrapper">
-              <a id="play-button" href="#">
+            <div class="trackInfo">
+                <div id="infoTrack"></div>
+                <div class="artist-name"><span id="by">By</span><span id="infoArtist"></span></div>
+            </div>
+            <button id='left-skip' class="skip"></button> 
+            <button id="play-button"></button>
+            <button id='right-skip' class="skip"></button> 
+            <div class="bottom-controls">
+                <div class="control" id="newScene"><a>new scene</a></div>
+                <div class="control" id="full-screen"><a>full screen</a></div>
+                <div class="social-icon"><a href="#"><img src="img/Radio Dharma Insta.png" height="69" width="70" alt=""></a></div>
+                <div class="social-icon"><a href="#"><img src="img/Radio Dharma Facebook.png" height="69" width="70" alt=""></a></div>
+                <div class="social-icon"><a href="#"><img src="img/Radio Dharma Twitter.png" height="69" width="70" alt=""></a></div>
+
+
+            </div>
+              <!--<a id="play-button" href="#">
                 <div class="left"></div>
                 <div class="right"></div>
                 <div class="triangle-1"></div>
                 <div class="triangle-2"></div>
-              </a>
+              </a> -->
               <div id="circle"></div>
             </div>
-            <div id="controlPanel">
+            <div id="controlPanel" style="display: none">
                 <div id="tab"><a href="#" id="toggleButton"><i class="icon-menu"></i></a></div>
                 <div id="trackInfoPanel">
                     <img id="infoImage" src="">
-                    <div id="infoArtist"></div>
-                    <div id="infoTrack"></div>
                 </div>
                 <div id="playerControls">
                     <form id="form">
                         <input id="input" placeholder="Paste Soundcloud URL here (https://soundcloud.com/artist/track)">
                         <button type="submit" id="submit">Submit</button><br>
                     </form>
-                    <audio id="player" controls="" autoplay="" preload autobuffer></audio>
+                    <audio id="scPlayer" controls="" autoplay="" preload autobuffer></audio>
                 </div>
             </div>
             <div id="barChart"></div>

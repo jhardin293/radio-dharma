@@ -1,3 +1,26 @@
+
+function launchIntoFullscreen(element) {
+  if(element.requestFullscreen) {
+    element.requestFullscreen();
+  } else if(element.mozRequestFullScreen) {
+    element.mozRequestFullScreen();
+  } else if(element.webkitRequestFullscreen) {
+    element.webkitRequestFullscreen();
+  } else if(element.msRequestFullscreen) {
+    element.msRequestFullscreen();
+  }
+}
+
+function exitFullscreen() {
+  if(document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if(document.mozCancelFullScreen) {
+    document.mozCancelFullScreen();
+  } else if(document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  }
+}
+
 var SoundcloudAudioSource = function (player) {
   var self = this;
   var analyser;
@@ -33,17 +56,20 @@ var SoundcloudAudioSource = function (player) {
 
 var Visualizer = function() {
   var audioSource;
-  var rect;
+  var circ;
   var bar;
   var draw = function() {
     // you can then access all the frequency and volume data
+    //console.log(audioSource.streamData);
     var reduced = audioSource.streamData.reduce(function(prev,cur){ return prev + cur});
     var avg = reduced / audioSource.streamData.length;
-    var value = audioSource.streamData[15];
-    var scale = d3.scale.linear().domain([0, 60]).range([70,100]);
+    var value = audioSource.streamData[8];
+    var scale = d3.scale.linear().domain([0, 60]).range([2,100]);
     var scaledValue = scale(avg);
-    rect.style.height = scaledValue + '%';
-    rect.style.width = scaledValue + '%';
+    var scaledValueP = scaledValue * 2 + '%';
+    console.log(scaledValueP);
+    circ.style.height = scaledValueP;
+    circ.style.width = scaledValueP;
     //console.log(audioSource.volume);
 
     for(bin = 0; bin < audioSource.streamData.length; bin ++) {
@@ -58,7 +84,7 @@ var Visualizer = function() {
   };
   this.init = function(options) {
     audioSource = options.audioSource;
-    rect = document.getElementById('circle');
+    circ = document.getElementById('circle');
     audioSource.streamData.forEach(function(bin, i){
       bar = document.createElement('div');
       bar.setAttribute('class', 'bar');
@@ -66,9 +92,15 @@ var Visualizer = function() {
       document.getElementById('barChart').appendChild(bar);
       bar.style.height = '100px';
     });
-    console.log(audioSource);
     draw();
   }; 
+
+  this.end = function() {
+    circ = document.getElementById('circle');
+    console.log(circ,'circ');
+    circ.style.height = '';
+    circ.style.width = '';
+  };
 };
 /* Makes a request to the Soundcloud API and returns JSON data. */
 var SoundcloudLoader = function(player,uiUpdater){
@@ -78,20 +110,23 @@ var SoundcloudLoader = function(player,uiUpdater){
   this.streamUrl ="";
   this.errorMessage = "";
   this.player = player;
-  this.uiUPdater = uiUpdater;
+  this.uiUpdater = uiUpdater;
 
   this.loadStream = function(track_url, successCallback, errorCallback) {
+    var tempUrl = "https://soundcloud.com/jpmitchellmusic/sets/radio-dharma";
     SC.initialize({
       client_id: client_id
     }); 
-    SC.get('/resolve', { url: track_url }).then(function(sound){
+    SC.get('/resolve', { url: tempUrl }).then(function(sound){
       if(sound.errors) {
+        console.log('errorr');
         errrorCallback();
       } else  {
         if(sound.kind === 'playlist'){
           self.sound = sound;
-          self.steamPlaylistIndex = 0;
-          self.steamUrl = function() {
+          console.log(sound,'sound');
+          self.streamPlaylistIndex = 0;
+          self.streamUrl = function() {
             return sound.tracks[self.streamPlaylistIndex].stream_url + '?client_id=' + client_id;
           };
           successCallback();
@@ -119,14 +154,18 @@ var SoundcloudLoader = function(player,uiUpdater){
       if(direction === 'coasting') {
         this.steamPlaylistIndex++;
       }else if (direction === 'forward') {
-        if(this.streamPlaylistIndex >= this.sound.track_count-1) this.steamPlaylist = 0;
-        else this.steamPlayListIndex++;
+        if(this.streamPlaylistIndex >= this.sound.track_count-1) {
+          this.streamPlaylistIndex = 0;
+        }else{ 
+          this.streamPlaylistIndex++;
+        }
       }else{
         if(this.steamPlaylistIndex <= 0)  this.steamPlaylistIndex = this.sound.track_count-1;
         else this.streamPlaylistIndex--;
       }
-      if(this.steamPlaylistIndex >= 0 && this.streamPlaylistIndex <= this.sound.track_count-1) {
-        this.player.setAtrribute('src', this.streamUrl());    
+      if(this.streamPlaylistIndex >= 0 && this.streamPlaylistIndex <= this.sound.track_count-1) {
+        console.log('ok');
+        this.player.setAttribute('src', this.streamUrl());    
         this.uiUpdater.update(this);
         this.player.play();
       }
@@ -151,15 +190,27 @@ var UiUpdater = function() {
     this.update = function(loader) {
       //update the track and artist in the controlPanel
       var artistLink = document.createElement('a');
+      console.log(loader,'loader');
       artistLink.setAttribute('href', loader.sound.user.permalink_url);
-      artistLink.innerHTML = loader.sound.user.username;
       var trackLink = document.createElement('a');
       trackLink.setAttribute('href', loader.sound.permalink_url);
 
        if(loader.sound.kind=="playlist"){
-            trackLink.innerHTML = "<p>" + loader.sound.tracks[loader.streamPlaylistIndex].title + "</p>" + "<p>"+loader.sound.title+"</p>";
+            var artistAndTitle = loader.sound.tracks[loader.streamPlaylistIndex].title.split('-'); 
+            console.log(loader.sound, 'art title');
+            if (artistAndTitle[1]) {
+              var title = artistAndTitle[1];
+              var artist = artistAndTitle[0];
+            }else{
+              console.log(artistAndTitle, 'tttt');
+              var title = artistAndTitle[0];
+              var artist = loader.sound.tracks[loader.streamPlaylistIndex].user.username;  
+            };
+            trackLink.innerHTML = "<p>" + title + "</p>";
+            artistLink.innerHTML = artist;
         }else{
             trackLink.innerHTML = loader.sound.title;
+            artistLink.innerHTML = loader.sound.user.username;
         }
 
         var image = loader.sound.artwork_url ? loader.sound.artwork_url : loader.sound.user.avatar_url; // if no track artwork exists, use the user's avatar.
@@ -177,22 +228,118 @@ var UiUpdater = function() {
     };
     
 };
+ 
+var loadAndUpdate;
 
+function youTubePlayer () {
+  //Youtube
+  //load script async 
+  var tag = document.createElement('script');
+
+  tag.src = "https://www.youtube.com/iframe_api";
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  //This function creates an iframe after the API code downloads
+  var playerOptions = {
+    'modestbranding': 1, 
+    'showinfo': 0,
+    'autoplay': 1, 
+    'controls': 0,
+    'autohide':1,
+    "origin": 'http://localhost:8000',
+    "listType": 'playlist',
+    "list": 'PL-hLOP7gXeLjkosd-wjvcZP9-eusky2OF',
+    'wmode':'opaque'  
+  };
+
+  window.onYouTubeIframeAPIReady = function () {
+    player = new YT.Player('player', {
+      //todo change to 100%
+      height: '100%',
+      width: '100%',
+      videoId: 'yLIJ6xlNSEU',
+      playerVars: playerOptions,
+      events: {
+        'onReady': onPlayerReady,
+        'onStateChange': onPlayerStateChange
+      } 
+    });
+  };
+  console.log(player, 'in youtube');
+
+  //The API will call this function when the video player is ready.
+  function onPlayerReady(event) {
+    var newScene = document.getElementById('newScene');
+    var playBtn = document.getElementById('play-button');
+    player.mute();
+    player.playVideo();
+    console.log(player, 'in onPlayer');
+    newScene.addEventListener('click',function(){
+      console.log(player);
+      player.nextVideo();
+    })
+
+    var playclicked = false;
+    playBtn.addEventListener('click', function(e){
+      if (playclicked){
+        console.log('hi');
+        //player.playVideo();  
+      }else{
+        console.log('hello');
+        //player.pauseVideo();
+      }
+
+    });
+  }
+
+  //The API calls this function when the player's state changes.
+  var done = false;
+
+  function stopVideo() {
+    player.stopVideo();
+  }
+
+  function onPlayerStateChange(event) {
+    console.log('event: ', event, 'player:', player);
+  }
+}
 
 window.onload = function init() {
-  var player = document.getElementById('player');
+  //SoundCloud
+  var scPlayer = document.getElementById('scPlayer');
   var source = document.getElementById('source');
   var playBtn = document.getElementById('play-button');
+  var circle = document.getElementsByClassName('circle-wrapper')[0];
+  var fullScreen = document.getElementById('full-screen');
   var uiUpdater = new UiUpdater();
-  var loader = new SoundcloudLoader(player,uiUpdater);
-  var audioSource = new SoundcloudAudioSource(player, source);
+  var loader = new SoundcloudLoader(scPlayer,uiUpdater);
+  var audioSource = new SoundcloudAudioSource(scPlayer, source);
   var visualizer = new Visualizer();
-  
+  var yTPlayer = new youTubePlayer();
+  var skipRight = document.getElementById('right-skip');
+  var skipLeft = document.getElementById('left-skip');
+  console.log(player, 'player in onload');
+  //var player;
+ var isFullScreen = false; 
+ fullScreen.addEventListener('click', function() {
+  if (!isFullScreen){
+    launchIntoFullscreen(document.documentElement);
+    isFullScreen = true;
+    fullScreen.innerHTML = '<a> small screen </a>';
+  }else{
+    exitFullscreen();
+    isFullScreen = false;
+    fullScreen.innerHTML = '<a> full screen </a>';
+  }
+ }); 
   playBtn.className += '' + 'paused';
   
-  var loadAndUpdate =  function(trackUrl) { 
+  loadAndUpdate =  function(trackUrl) { 
     loader.loadStream(trackUrl, 
       function() {
+        console.log(loader.streamUrl(), 'stream url');
         uiUpdater.clearInfoPanel();
         audioSource.playStream(loader.streamUrl());
         uiUpdater.update(loader);
@@ -203,31 +350,44 @@ window.onload = function init() {
     );
   };
 
+  skipRight.addEventListener('click', function(e){
+    loader.directStream('forward'); 
+  });
+
+  skipLeft.addEventListener('click', function() {
+    loader.directStream('backward');
+  })
+ 
+
+  loadAndUpdate();
+
+  var clicked = false;
+  playBtn.className ='pause';
+
+  playBtn.addEventListener('click', function(e){
+    clicked === true ? clicked = false : clicked = true;
+    if (clicked){
+      playBtn.className ='play';
+      scPlayer.pause();
+      console.log(player);
+      //player.pause();
+    }else {
+      scPlayer.play();
+      playBtn.className ='pause';
+    }
+    console.log(clicked);
+  });
+
   visualizer.init({
     containerId: 'visualizer',
     audioSource: audioSource
   });
- 
-    
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    var trackUrl = document.getElementById('input').value;
-    loadAndUpdate(trackUrl);
-    playBtn.classList.remove('paused');  
-  });
-   
-  var clicked = false;
-  playBtn.addEventListener('click', function(e){
-    clicked === true ? clicked = false : clicked = true;
-    if (clicked){
-      playBtn.className += '' + 'paused';
-      player.pause();
-    }else {
-      playBtn.classList.remove('paused');  
-      player.play();
-    }
 
-    console.log(clicked);
+  circle.addEventListener('mouseover', function(e){
   });
-  
+
+  circle.addEventListener('mouseout', function(e){
+  }); 
+
 };
+
