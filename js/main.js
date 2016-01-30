@@ -66,7 +66,8 @@ var Visualizer = function() {
     var value = audioSource.streamData[8];
     var scale = d3.scale.linear().domain([0, 60]).range([2,100]);
     var scaledValue = scale(avg);
-    var scaledValueP = scaledValue * 2 + '%';
+    var scaledValueP = scaledValue + '%';
+    console.log(scaledValueP);
     circ.style.height = scaledValueP;
     circ.style.width = scaledValueP;
     //console.log(audioSource.volume);
